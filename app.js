@@ -25,7 +25,7 @@ const PLACE = {
   s: num('s', 0.38),   // eye model is ~1.7 units wide -> ~0.65 units (≈86% of painting width)
 }
 const DEBUG = q.get('debug') === '1'
-const V = '4' // bump on every deploy so phones don't use cached models
+const V = '6' // bump on every deploy so phones don't use cached models
 
 // ---------- look (neon / radiance) ----------
 // Tweak live with URL params, e.g. ?env=1.2&glow=2.5&eyeglow=1.6&halo=0.9&light=1
@@ -35,6 +35,8 @@ const LOOK = {
   eyeGlow: num('eyeglow', 0.7),  // eye's emission multiplier
   halo: num('halo', 0),        // additive glow halo behind each spark (0 = off)
   light: num('light', 0.6),      // overall scene light multiplier
+  spark: num('spark', 1.5),        // size of each small sparkle (scaled around its own centre)
+  star: num('star', 1.5),          // size of the big central star with the long rays
 }
 
 // ---------- UI ----------
@@ -87,16 +89,27 @@ const addHalo = (mesh) => {
   mesh.add(sprite)                          // follows the spark's animation (incl. pulsing)
 }
 
-const loadModel = (url, { glow = 1, halos = false } = {}) => new Promise((resolve, reject) => {
+const loadModel = (url, { glow = 1, halos = false, grow = 1 } = {}) => new Promise((resolve, reject) => {
   loader.load(url, (gltf) => {
     const root = gltf.scene
     const meshes = []
     root.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; meshes.push(o) } })
+    // the big central star = the mesh with the largest on-screen size
+    const size = (m) => { m.geometry.computeBoundingSphere(); return m.geometry.boundingSphere.radius * m.scale.x * (m.parent?.scale.x || 1) }
+    const biggest = grow !== 1 ? meshes.reduce((a, b) => (size(b) > size(a) ? b : a)) : null
     meshes.forEach((m) => {
       const mat = m.material
       mat.envMapIntensity = LOOK.env
       mat.emissiveIntensity = (mat.emissiveIntensity ?? 1) * glow
       mat.needsUpdate = true
+      const g = m === biggest ? LOOK.star : grow
+      if (g !== 1) {
+        // enlarge the spark around its own centre (not the scene origin), leaving its animation intact
+        m.geometry.computeBoundingBox()
+        const c = m.geometry.boundingBox.getCenter(new THREE.Vector3()).multiply(m.scale).add(m.position)
+        m.position.multiplyScalar(g).sub(c.multiplyScalar(g - 1))
+        m.scale.multiplyScalar(g)
+      }
       if (halos) addHalo(m)
     })
     if (gltf.animations.length) {
@@ -110,7 +123,7 @@ const loadModel = (url, { glow = 1, halos = false } = {}) => new Promise((resolv
 
 const modelsReady = Promise.all([
   loadModel(`models/eye.glb?v=${V}`, { glow: LOOK.eyeGlow }),
-  loadModel(`models/sparks.glb?v=${V}`, { glow: LOOK.glow, halos: true }),
+  loadModel(`models/sparks.glb?v=${V}`, { glow: LOOK.glow, halos: true, grow: LOOK.spark }),
 ])
   .then(([eye, sparks]) => { rig.add(eye); rig.add(sparks) })
 
