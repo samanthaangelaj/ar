@@ -25,15 +25,16 @@ const PLACE = {
   s: num('s', 0.38),   // eye model is ~1.7 units wide -> ~0.65 units (≈86% of painting width)
 }
 const DEBUG = q.get('debug') === '1'
+const V = '4' // bump on every deploy so phones don't use cached models
 
 // ---------- look (neon / radiance) ----------
 // Tweak live with URL params, e.g. ?env=1.2&glow=2.5&eyeglow=1.6&halo=0.9&light=1
 const LOOK = {
-  env: num('env', 0.8),          // reflections from a studio environment (glossy highlights)
-  glow: num('glow', 2.0),        // sparks' emission multiplier
-  eyeGlow: num('eyeglow', 1.3),  // eye's emission multiplier
-  halo: num('halo', 0.6),        // additive glow halo behind each spark (0 = off)
-  light: num('light', 1.0),      // overall scene light multiplier
+  env: num('env', 0.7),          // reflections from a studio environment (glossy highlights)
+  glow: num('glow', 1.2),        // sparks' emission multiplier
+  eyeGlow: num('eyeglow', 0.7),  // eye's emission multiplier
+  halo: num('halo', 0),        // additive glow halo behind each spark (0 = off)
+  light: num('light', 0.6),      // overall scene light multiplier
 }
 
 // ---------- UI ----------
@@ -108,8 +109,8 @@ const loadModel = (url, { glow = 1, halos = false } = {}) => new Promise((resolv
 })
 
 const modelsReady = Promise.all([
-  loadModel('models/eye.glb', { glow: LOOK.eyeGlow }),
-  loadModel('models/sparks.glb', { glow: LOOK.glow, halos: true }),
+  loadModel(`models/eye.glb?v=${V}`, { glow: LOOK.eyeGlow }),
+  loadModel(`models/sparks.glb?v=${V}`, { glow: LOOK.glow, halos: true }),
 ])
   .then(([eye, sparks]) => { rig.add(eye); rig.add(sparks) })
 
