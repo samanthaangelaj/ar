@@ -1,0 +1,23 @@
+{
+  "imagePath": "targets/painting_luminance.jpg",
+  "metadata": null,
+  "name": "painting",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 99,
+    "width": 1200,
+    "height": 1600,
+    "isRotated": false,
+    "originalWidth": 1200,
+    "originalHeight": 1798
+  },
+  "resources": {
+    "originalImage": "painting_original.jpg",
+    "croppedImage": "painting_cropped.jpg",
+    "thumbnailImage": "painting_thumbnail.jpg",
+    "luminanceImage": "painting_luminance.jpg"
+  },
+  "created": 1790712896996,
+  "updated": 1790712896996
+}
