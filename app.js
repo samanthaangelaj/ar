@@ -25,7 +25,7 @@ const PLACE = {
   s: num('s', 0.38),   // eye model is ~1.7 units wide -> ~0.65 units (≈86% of painting width)
 }
 const DEBUG = q.get('debug') === '1'
-const V = '6' // bump on every deploy so phones don't use cached models
+const V = '7' // bump on every deploy so phones don't use cached models
 
 // ---------- look (neon / radiance) ----------
 // Tweak live with URL params, e.g. ?env=1.2&glow=2.5&eyeglow=1.6&halo=0.9&light=1
@@ -37,6 +37,8 @@ const LOOK = {
   light: num('light', 0.6),      // overall scene light multiplier
   spark: num('spark', 1.5),        // size of each small sparkle (scaled around its own centre)
   star: num('star', 1.5),          // size of the big central star with the long rays
+  starX: num('starx', 0),        // fine-tune the star's centre (model units, + = right/up)
+  starY: num('stary', 0),
 }
 
 // ---------- UI ----------
@@ -89,6 +91,10 @@ const addHalo = (mesh) => {
   mesh.add(sprite)                          // follows the spark's animation (incl. pulsing)
 }
 
+// Measured in model space: where the big star's rays cross, and the eye's pupil.
+const STAR_CROSS = new THREE.Vector2(0.0126, -0.0796)
+const PUPIL = new THREE.Vector2(-0.020, 0.008)
+
 const loadModel = (url, { glow = 1, halos = false, grow = 1 } = {}) => new Promise((resolve, reject) => {
   loader.load(url, (gltf) => {
     const root = gltf.scene
@@ -96,14 +102,24 @@ const loadModel = (url, { glow = 1, halos = false, grow = 1 } = {}) => new Promi
     root.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; meshes.push(o) } })
     // the big central star = the mesh with the largest on-screen size
     const size = (m) => { m.geometry.computeBoundingSphere(); return m.geometry.boundingSphere.radius * m.scale.x * (m.parent?.scale.x || 1) }
-    const biggest = grow !== 1 ? meshes.reduce((a, b) => (size(b) > size(a) ? b : a)) : null
+    const biggest = (grow !== 1 || halos) ? meshes.reduce((a, b) => (size(b) > size(a) ? b : a)) : null
+    root.updateMatrixWorld(true)
     meshes.forEach((m) => {
       const mat = m.material
       mat.envMapIntensity = LOOK.env
       mat.emissiveIntensity = (mat.emissiveIntensity ?? 1) * glow
       mat.needsUpdate = true
-      const g = m === biggest ? LOOK.star : grow
-      if (g !== 1) {
+      if (m === biggest) {
+        // scale the star around its ray crossing and put that crossing on the pupil
+        const g = LOOK.star
+        const inv = m.parent.matrixWorld.clone().invert()
+        const z = new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()).z
+        const cross = new THREE.Vector3(STAR_CROSS.x, STAR_CROSS.y, z).applyMatrix4(inv)
+        const target = new THREE.Vector3(PUPIL.x + LOOK.starX, PUPIL.y + LOOK.starY, z).applyMatrix4(inv)
+        m.position.multiplyScalar(g).sub(cross.clone().multiplyScalar(g - 1)).add(target.sub(cross))
+        m.scale.multiplyScalar(g)
+      } else if (grow !== 1) {
+        const g = grow
         // enlarge the spark around its own centre (not the scene origin), leaving its animation intact
         m.geometry.computeBoundingBox()
         const c = m.geometry.boundingBox.getCenter(new THREE.Vector3()).multiply(m.scale).add(m.position)
@@ -121,11 +137,12 @@ const loadModel = (url, { glow = 1, halos = false, grow = 1 } = {}) => new Promi
   }, undefined, reject)
 })
 
+let eyeRoot = null, sparksRoot = null
 const modelsReady = Promise.all([
   loadModel(`models/eye.glb?v=${V}`, { glow: LOOK.eyeGlow }),
   loadModel(`models/sparks.glb?v=${V}`, { glow: LOOK.glow, halos: true, grow: LOOK.spark }),
 ])
-  .then(([eye, sparks]) => { rig.add(eye); rig.add(sparks) })
+  .then(([eye, sparks]) => { eyeRoot = eye; sparksRoot = sparks; rig.add(eye); rig.add(sparks) })
 
 if (DEBUG) {
   // outline of the tracked area (0.75 x 1) + full painting (0.75 x 1.124)
@@ -170,6 +187,7 @@ const arModule = () => ({
     const key = new THREE.DirectionalLight(0xffffff, 2.0 * LOOK.light); key.position.set(0.5, 1, 2); scene.add(key)
     const rim = new THREE.DirectionalLight(0xff9ad5, 0.35 * LOOK.light); rim.position.set(-1, -0.5, 1); scene.add(rim)
     scene.add(content)
+    if (DEBUG) window.__ar = { THREE, scene, camera, rig, content, get eye() { return eyeRoot }, get sparks() { return sparksRoot } }
     camera.position.set(0, 0, 0)
     XR8.XrController.updateCameraProjectionMatrix({ origin: camera.position, facing: camera.quaternion })
     hint.classList.remove('hidden')
