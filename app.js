@@ -25,7 +25,7 @@ const PLACE = {
   s: num('s', 0.38),   // eye model is ~1.7 units wide -> ~0.65 units (≈86% of painting width)
 }
 const DEBUG = q.get('debug') === '1'
-const V = '8' // bump on every deploy so phones don't use cached models
+const V = '9' // bump on every deploy so phones don't use cached models
 
 // ---------- look (neon / radiance) ----------
 // Tweak live with URL params, e.g. ?env=1.2&glow=2.5&eyeglow=1.6&halo=0.9&light=1
