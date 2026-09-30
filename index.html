@@ -98,13 +98,48 @@
     .intro__title { font-family:var(--font-heading); font-style:italic; font-weight:300; font-size:var(--text-4xl); line-height:1.15; margin:0; }
     .intro__thumb { width:min(46vw, 190px); aspect-ratio:3/4; object-fit:cover; border:1px solid color-mix(in oklch, var(--color-mystic) 45%, transparent); box-shadow:0 0 40px color-mix(in oklch, var(--color-nebula) 55%, transparent); }
     .intro__text { max-width:300px; font-size:.95rem; line-height:1.8; opacity:.7; margin:0; }
+    /* Button = store's .av-btn.av-btn--secondary + .threshold__shop-cta (home "Go to Shop") */
     .btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      height:3.5rem; padding:0 2.75rem;
       font-family:var(--font-sub); font-size:var(--text-sm); letter-spacing:.25em; text-transform:uppercase;
-      color:var(--color-divine); background:transparent; border:1px solid color-mix(in oklch, var(--color-divine) 70%, transparent);
-      border-radius:2px; padding:.95rem 2.4rem; cursor:pointer; transition:background .25s, border-color .25s;
+      color:var(--color-divine); background:transparent; border:1px solid rgba(255,255,255,.3);
+      border-radius:9999px; cursor:pointer;
+      transition:background .35s cubic-bezier(.16,1,.3,1), border-color .35s cubic-bezier(.16,1,.3,1), color .35s cubic-bezier(.16,1,.3,1);
     }
-    .btn:not(:disabled):hover { background:color-mix(in oklch, var(--color-mystic) 20%, transparent); border-color:var(--color-mystic); }
-    .btn:disabled { opacity:.5; }
+    .btn:not(:disabled):hover, .btn:not(:disabled):active {
+      background:linear-gradient(135deg, var(--color-celestial) 0%, rgba(129,140,248,.25) 100%);
+      border-color:var(--color-mystic);
+    }
+    .btn:disabled { opacity:.5; cursor:default; }
+    /* sparks around the button edge (same as the home page) */
+    .btn-wrap { position:relative; display:inline-block; }
+    .btn-sparks { position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .8s; }
+    .btn-wrap.ready .btn-sparks { opacity:1; }
+    .btn-spark {
+      position:absolute; width:1.125rem; height:1.125rem; margin:-.5625rem 0 0 -.5625rem; opacity:0; mix-blend-mode:screen;
+      background:
+        radial-gradient(circle at 50% 50%, var(--spark) 0%, transparent 55%) center / 38% 38% no-repeat,
+        linear-gradient(90deg, transparent 0%, var(--spark) 50%, transparent 100%) center / 100% 1px no-repeat,
+        linear-gradient(0deg, transparent 0%, var(--spark) 50%, transparent 100%) center / 1px 100% no-repeat;
+      animation:av-spark 1.9s ease-in-out infinite;
+    }
+    .btn-spark:nth-child(1) { left:16%; top:-4px; --spark:var(--color-gold); animation-duration:1.69s; animation-delay:0s; }
+    .btn-spark:nth-child(2) { left:97%; top:45%; --spark:var(--color-sacred); animation-duration:2.11s; animation-delay:.55s; }
+    .btn-spark:nth-child(3) { left:55%; top:calc(100% + 3px); --spark:var(--color-mystic); animation-duration:2.51s; animation-delay:1.3s; }
+    @keyframes av-spark {
+      0%   { opacity:0; transform:scale(.35) rotate(-8deg); }
+      16%  { opacity:1; transform:scale(1)   rotate(-2deg); }
+      58%  { opacity:1; transform:scale(1.05) rotate(4deg); }
+      75%  { opacity:0; transform:scale(.5)  rotate(8deg); }
+      100% { opacity:0; transform:scale(.35) rotate(9deg); }
+    }
+    /* intro entrance, like the home page reveal */
+    .overlay > * { opacity:0; transform:translateY(1.5rem); animation:av-fade-up 1s ease forwards; }
+    .overlay > :nth-child(1) { animation-delay:.2s } .overlay > :nth-child(2) { animation-delay:.4s }
+    .overlay > :nth-child(3) { animation-delay:.6s } .overlay > :nth-child(4) { animation-delay:.8s }
+    .overlay > :nth-child(5) { animation-delay:1s }  .overlay > :nth-child(6) { animation-delay:1.2s }
+    @keyframes av-fade-up { to { opacity:1; transform:translateY(0); } }
     #error { color:#ffb3c8; font-size:var(--text-sm); margin:0; }
     #error:empty { display:none; }
 
@@ -143,18 +178,21 @@
 
   <div id="intro" class="overlay">
     <p class="label">Augmented reality</p>
-    <h1 class="intro__title">See the painting awaken</h1>
-    <img class="intro__thumb" src="targets/painting_thumbnail.jpg" alt="The painting to scan">
-    <p class="intro__text">Find this painting, press start and point your camera at it.</p>
-    <button id="start" class="btn" disabled>Loading…</button>
+    <h1 class="intro__title">All Seeing Heart</h1>
+    <img class="intro__thumb" src="targets/painting_thumbnail.jpg" alt="All Seeing Heart, original painting">
+    <p class="intro__text">Press start and point your camera at the painting to see it awaken.</p>
+    <span class="btn-wrap">
+      <button id="start" class="btn" disabled>Loading…</button>
+      <span class="btn-sparks" aria-hidden="true"><span class="btn-spark"></span><span class="btn-spark"></span><span class="btn-spark"></span></span>
+    </span>
     <p id="error"></p>
   </div>
 
-  <div id="hint" class="hidden"><span>Point at the painting</span></div>
+  <div id="hint" class="hidden"><span>Point at All Seeing Heart</span></div>
 
   <script>
     // ---- store navigation (edit here if the store menu changes) ----
-    const SITE = 'https://animavenastudio.com'
+    const SITE = 'https://animavena.com'
     const NAV = [
       { title: 'Shop', path: '/pages/shop' },
       { title: 'Universe', path: '/pages/universe' },
@@ -172,8 +210,10 @@
     burger.addEventListener('click', () => { dlg.showModal(); burger.setAttribute('aria-expanded', 'true') })
     dlg.querySelector('.mobile-nav__close').addEventListener('click', () => dlg.close())
     dlg.addEventListener('close', () => burger.setAttribute('aria-expanded', 'false'))
-    document.getElementById('start').addEventListener('click', () => document.body.classList.add('ar-live'))
+    const startBtn = document.getElementById('start')
+    startBtn.addEventListener('click', () => document.body.classList.add('ar-live'))
+    new MutationObserver(() => startBtn.parentElement.classList.toggle('ready', !startBtn.disabled)).observe(startBtn, { attributes: true })
   </script>
-  <script type="module" src="app.js?v=9"></script>
+  <script type="module" src="app.js?v=10"></script>
 </body>
 </html>

@@ -15,15 +15,15 @@ Camera needs HTTPS or localhost. From this folder: `npx serve .` then open on th
 or deploy (below) and open on the phone.
 
 ## Deploy (GitHub Pages + subdomain)
-1. Create a repo, e.g. `LakeNichts/animavena-ar`, push the contents of this folder to `main`.
+1. Create a repo, e.g. `samanthaangelaj/ar`, push the contents of this folder to `main`.
 2. Repo → Settings → Pages → Source: *Deploy from a branch*, `main` / root.
-3. At your domain's DNS provider add: `CNAME  ar  →  lakenichts.github.io`
-4. Back in Settings → Pages: custom domain `ar.animavenastudio.com`, tick *Enforce HTTPS* (after the certificate is issued, can take up to ~1 h).
+3. At your domain's DNS provider add: `CNAME  ar  →  samanthaangelaj.github.io`
+4. Back in Settings → Pages: custom domain `ar.animavena.com`, tick *Enforce HTTPS* (after the certificate is issued, can take up to ~1 h).
 The `CNAME` file here already contains the subdomain; change it if you pick another name.
 
 ## Tuning placement
 Add URL params to move/scale the eye+sparks live (units: painting height = 1):
-`https://ar.animavenastudio.com/?debug=1&x=0.03&y=-0.165&z=0.02&s=0.38`
+`https://ar.animavena.com/?debug=1&x=0.03&y=-0.165&z=0.02&s=0.38`
 `debug=1` draws the tracked area (green) and full painting (yellow). When happy, copy the
 numbers into `PLACE` in `app.js`.
 
@@ -37,4 +37,4 @@ Replace the GLB and recompress:
 three.js: MIT, `vendor/three/LICENSE`.
 
 ## Link from Shopify
-`<a href="https://ar.animavenastudio.com" target="_blank" rel="noopener">View in AR</a>`
+`<a href="https://ar.animavena.com" target="_blank" rel="noopener">View in AR</a>`
