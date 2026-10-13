@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <link rel="icon" href="data:,">
-  <title>Anima Vena · AR</title>
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="apple-touch-icon" href="img/favicon.png">
+  <title>Living Art – Anima Vena Studio</title>
   <meta name="theme-color" content="#0a0a12">
   <!-- Store fonts (the theme's live settings): Playfair Display (headings), Assistant (labels, nav, body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -193,12 +194,11 @@
   <script>
     // ---- store navigation (edit here if the store menu changes) ----
     const SITE = 'https://animavenastudio.com'
-    // Same items and order as the store's main menu (Shopify admin -> Content -> Menus).
+    // Same items and order as the store header (main menu; Print Club is hidden there too).
     const NAV = [
       { title: 'Shop', path: '/pages/shop' },
       { title: 'The Universe', path: '/pages/universe' },
       { title: 'Living Art', path: '/pages/living-art', current: true },
-      { title: 'Print Club', path: '/pages/print-club' },
       { title: 'FAQ', path: '/pages/faq' },
       { title: 'Contact', path: '/pages/contact' },
     ]
@@ -208,7 +208,7 @@
       return a
     }
     const [navL, navR] = document.querySelectorAll('.header__nav')
-    const half = Math.ceil(NAV.length / 2)
+    const half = Math.floor(NAV.length / 2) // same split as the store: 2 left, 3 right
     NAV.forEach((l, i) => (i < half ? navL : navR).appendChild(mk('header__link', l)))
     NAV.forEach((l) => document.querySelector('.mobile-nav__links').appendChild(mk('mobile-nav__link', l)))
     document.querySelectorAll('[data-href]').forEach((a) => { a.href = SITE + a.dataset.href })
@@ -221,6 +221,6 @@
     startBtn.addEventListener('click', () => document.body.classList.add('ar-live'))
     new MutationObserver(() => startBtn.parentElement.classList.toggle('ready', !startBtn.disabled)).observe(startBtn, { attributes: true })
   </script>
-  <script type="module" src="app.js?v=11"></script>
+  <script type="module" src="app.js?v=12"></script>
 </body>
 </html>
