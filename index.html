@@ -6,10 +6,10 @@
   <link rel="icon" href="data:,">
   <title>Anima Vena · AR</title>
   <meta name="theme-color" content="#0a0a12">
-  <!-- Store fonts: Cormorant Garamond (headings), Cinzel (labels/nav), Inter (body) -->
+  <!-- Store fonts (the theme's live settings): Playfair Display (headings), Assistant (labels, nav, body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
   <!-- 8th Wall self-hosted engine; 'slam' chunk contains image-target tracking -->
   <script src="vendor/8thwall/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"></script>
   <script type="importmap">
@@ -29,14 +29,14 @@
       --color-sacred: #ec4899;
       --color-mystic: #818cf8;
       --color-gold: #fbbf24;
-      --font-heading: "Cormorant Garamond", Georgia, serif;
-      --font-sub: "Cinzel", Georgia, serif;
-      --font-body: "Inter", system-ui, sans-serif;
+      --font-heading: "Playfair Display", Georgia, serif;
+      --font-sub: "Assistant", system-ui, sans-serif;
+      --font-body: "Assistant", system-ui, sans-serif;
       --text-xs: 0.6875rem; --text-sm: 0.8125rem; --text-xl: 1.25rem; --text-4xl: 2.25rem;
       --header-height: 4.5rem;
       --page-margin: 24px;
     }
-    html, body { margin:0; height:100%; background:var(--color-void); overflow:hidden; font-family:var(--font-body); font-weight:300; color:var(--color-divine); }
+    html, body { margin:0; height:100%; background:var(--color-void); overflow:hidden; font-family:var(--font-body); font-weight:400; color:var(--color-divine); }
     #camerafeed { position:fixed; inset:0; width:100vw; height:100vh; display:block; }
     a { color:inherit; }
 
@@ -54,12 +54,12 @@
     .header__left { justify-self:start; } .header__right { justify-self:end; }
     .header__nav { display:flex; align-items:center; gap:2rem; }
     .header__link {
-      font-family:var(--font-sub); font-size:var(--text-xs); letter-spacing:.15em; text-transform:uppercase;
+      font-family:var(--font-sub); font-size:var(--text-sm); letter-spacing:.15em; text-transform:uppercase;
       text-decoration:none; color:var(--color-divine); opacity:.55; transition:opacity .2s; white-space:nowrap;
     }
-    .header__link:hover { opacity:1; }
+    .header__link:hover, .header__link[aria-current="page"] { opacity:1; }
     .header__logo { display:flex; justify-self:center; }
-    .header__logo img { height:1.6rem; width:auto; display:block; }
+    .header__logo img { height:1.7rem; width:auto; display:block; } /* = store logo (its PNG has padding, 2.5rem there) */
     .header__icon-btn { display:flex; color:var(--color-divine); opacity:.7; transition:opacity .2s; }
     .header__icon-btn:hover { opacity:1; }
     .header svg { width:1.375rem; height:1.375rem; --icon-stroke-width:1.2; }
@@ -81,7 +81,7 @@
       .header { grid-template-columns:auto 1fr auto; }
       .header__nav { display:none; }
       .header__hamburger { display:flex; }
-      .header__logo img { height:1.35rem; }
+      .header__logo img { height:1.7rem; }
     }
 
     /* ---------- intro ---------- */
@@ -95,7 +95,7 @@
     }
     .overlay.hidden { opacity:0; pointer-events:none; }
     .label { font-family:var(--font-sub); font-size:var(--text-xs); letter-spacing:.3em; text-transform:uppercase; color:var(--color-mystic); margin:0; }
-    .intro__title { font-family:var(--font-heading); font-style:italic; font-weight:300; font-size:var(--text-4xl); line-height:1.15; margin:0; }
+    .intro__title { font-family:var(--font-heading); font-style:italic; font-weight:400; font-size:var(--text-4xl); line-height:1.15; margin:0; }
     .intro__thumb { width:min(46vw, 190px); aspect-ratio:3/4; object-fit:cover; border:1px solid color-mix(in oklch, var(--color-mystic) 45%, transparent); box-shadow:0 0 40px color-mix(in oklch, var(--color-nebula) 55%, transparent); }
     .intro__text { max-width:300px; font-size:.95rem; line-height:1.8; opacity:.7; margin:0; }
     /* Button = store's .av-btn.av-btn--secondary + .threshold__shop-cta (home "Go to Shop") */
@@ -193,13 +193,20 @@
   <script>
     // ---- store navigation (edit here if the store menu changes) ----
     const SITE = 'https://animavenastudio.com'
+    // Same items and order as the store's main menu (Shopify admin -> Content -> Menus).
     const NAV = [
       { title: 'Shop', path: '/pages/shop' },
-      { title: 'Universe', path: '/pages/universe' },
+      { title: 'The Universe', path: '/pages/universe' },
+      { title: 'Living Art', path: '/pages/living-art', current: true },
+      { title: 'Print Club', path: '/pages/print-club' },
       { title: 'FAQ', path: '/pages/faq' },
       { title: 'Contact', path: '/pages/contact' },
     ]
-    const mk = (cls, { title, path }) => { const a = document.createElement('a'); a.className = cls; a.href = SITE + path; a.textContent = title; return a }
+    const mk = (cls, { title, path, current }) => {
+      const a = document.createElement('a'); a.className = cls; a.href = SITE + path; a.textContent = title
+      if (current) { a.setAttribute('aria-current', 'page'); a.classList.add(cls + '--current') }
+      return a
+    }
     const [navL, navR] = document.querySelectorAll('.header__nav')
     const half = Math.ceil(NAV.length / 2)
     NAV.forEach((l, i) => (i < half ? navL : navR).appendChild(mk('header__link', l)))
@@ -214,6 +221,6 @@
     startBtn.addEventListener('click', () => document.body.classList.add('ar-live'))
     new MutationObserver(() => startBtn.parentElement.classList.toggle('ready', !startBtn.disabled)).observe(startBtn, { attributes: true })
   </script>
-  <script type="module" src="app.js?v=10"></script>
+  <script type="module" src="app.js?v=11"></script>
 </body>
 </html>
