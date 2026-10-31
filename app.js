@@ -44,7 +44,12 @@ const LOOK = {
 // ---------- UI ----------
 const $ = (id) => document.getElementById(id)
 const intro = $('intro'), startBtn = $('start'), hint = $('hint'), errorEl = $('error')
-const showError = (msg) => { errorEl.textContent = msg; startBtn.disabled = true; startBtn.textContent = 'UNAVAILABLE' }
+// Errors are shown on the intro screen; if AR already started, bring the intro back
+// so the message is visible instead of a black screen.
+const showError = (msg) => {
+  errorEl.textContent = msg; startBtn.disabled = true; startBtn.textContent = 'UNAVAILABLE'
+  intro.classList.remove('hidden'); document.body.classList.remove('ar-live')
+}
 
 // ---------- content ----------
 const content = new THREE.Group()          // follows the painting
